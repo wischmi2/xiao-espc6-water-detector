@@ -1,0 +1,24 @@
+menu "Water Detector Configuration"
+
+config WATER_SENSOR_GPIO
+    int "Water sensor GPIO number"
+    default 0
+    help
+        GPIO connected to the Water Detect 3 Click INT pin.
+        Default 0 maps to XIAO ESP32-C6 pin D0.
+
+config WATER_SENSOR_POLL_MS
+    int "Sensor poll interval (ms)"
+    default 500
+    range 100 10000
+    help
+        How often to read the water sensor GPIO.
+
+config WATER_SENSOR_HEARTBEAT_S
+    int "Stream heartbeat interval (seconds)"
+    default 60
+    range 10 3600
+    help
+        How often to send the current water state even when unchanged.
+
+endmenu
