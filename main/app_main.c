@@ -9,6 +9,7 @@
 #include "sample_credentials.h"
 #include "shell.h"
 #include "water_sensor.h"
+#include "wet_indicator.h"
 #include "wifi.h"
 
 #include <golioth/client.h>
@@ -84,9 +85,25 @@ void app_main(void)
 
     if (!nvs_credentials_are_set())
     {
+        if (0 == strcmp(nvs_read_wifi_ssid(), NVS_DEFAULT_STR))
+        {
+            GLTH_LOGW(TAG, "Missing setting: wifi/ssid");
+        }
+        if (0 == strcmp(nvs_read_wifi_password(), NVS_DEFAULT_STR))
+        {
+            GLTH_LOGW(TAG, "Missing setting: wifi/psk");
+        }
+        if (0 == strcmp(nvs_read_golioth_psk_id(), NVS_DEFAULT_STR))
+        {
+            GLTH_LOGW(TAG, "Missing setting: golioth/psk-id");
+        }
+        if (0 == strcmp(nvs_read_golioth_psk(), NVS_DEFAULT_STR))
+        {
+            GLTH_LOGW(TAG, "Missing setting: golioth/psk");
+        }
         GLTH_LOGW(TAG,
-                 "WiFi and Golioth credentials are not set. "
-                 "Use the shell settings commands to set them.");
+                 "Use the shell settings commands to set missing credentials, "
+                 "then verify with: settings get <key>");
 
         while (!nvs_credentials_are_set())
         {
@@ -98,6 +115,7 @@ void app_main(void)
     wifi_wait_for_connected();
 
     water_sensor_init();
+    wet_indicator_init();
 
     const struct golioth_client_config *config = golioth_sample_credentials_get();
     struct golioth_client *client = golioth_client_create(config);
@@ -111,6 +129,7 @@ void app_main(void)
 
     bool last_wet = water_sensor_is_wet();
     GLTH_LOGI(TAG, "Initial water state: %s", last_wet ? "wet" : "dry");
+    wet_indicator_update(last_wet, false);
     stream_water_state(client, last_wet, true);
 
     int64_t last_heartbeat_ms = esp_timer_get_time() / 1000;
@@ -129,11 +148,17 @@ void app_main(void)
             GLTH_LOGI(TAG, "Water state changed: %s -> %s",
                       last_wet ? "wet" : "dry",
                       is_wet ? "wet" : "dry");
+            wet_indicator_update(is_wet, true);
             stream_water_state(client, is_wet, false);
             last_wet = is_wet;
             last_heartbeat_ms = now_ms;
         }
-        else if (heartbeat_due)
+        else
+        {
+            wet_indicator_update(is_wet, false);
+        }
+
+        if (heartbeat_due && is_wet == last_wet)
         {
             GLTH_LOGI(TAG, "Heartbeat: water state is %s", is_wet ? "wet" : "dry");
             stream_water_state(client, is_wet, true);

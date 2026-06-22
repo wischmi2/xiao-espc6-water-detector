@@ -1,4 +1,5 @@
 set(esp_idf_common "../submodules/golioth-firmware-sdk/examples/esp_idf/common")
+set(project_common "../common")
 
 set(includes
     "${esp_idf_common}"
@@ -8,9 +9,10 @@ set(includes
 set(srcs
     "app_main.c"
     "water_sensor.c"
-    "${esp_idf_common}/shell.c"
+    "wet_indicator.c"
+    "${project_common}/shell.c"
     "${esp_idf_common}/wifi.c"
-    "${esp_idf_common}/nvs.c"
+    "${project_common}/nvs.c"
     "${esp_idf_common}/sample_credentials.c"
 )
 

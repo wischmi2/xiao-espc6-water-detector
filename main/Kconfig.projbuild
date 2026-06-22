@@ -21,4 +21,55 @@ config WATER_SENSOR_HEARTBEAT_S
     help
         How often to send the current water state even when unchanged.
 
+menu "Wet Indicator"
+
+config WATER_INDICATOR_LED_ENABLE
+    bool "Enable onboard LED wet indicator"
+    default y
+    help
+        Drive the XIAO ESP32-C6 user LED (GPIO15, active low) while wet.
+
+config WATER_INDICATOR_LED_GPIO
+    int "Wet indicator LED GPIO number"
+    depends on WATER_INDICATOR_LED_ENABLE
+    default 15
+    range 0 30
+    help
+        GPIO for the user LED. GPIO15 is the yellow LED on the XIAO ESP32-C6.
+
+config WATER_INDICATOR_BUZZER_GPIO
+    int "Passive buzzer GPIO number (-1 to disable)"
+    default -1
+    range -1 30
+    help
+        GPIO for an optional passive buzzer. The XIAO ESP32-C6 has no built-in
+        speaker or buzzer; connect a passive buzzer between this pin and GND.
+        Use -1 to disable buzzer output.
+
+config WATER_INDICATOR_BUZZER_FREQ_HZ
+    int "Buzzer tone frequency (Hz)"
+    depends on WATER_INDICATOR_BUZZER_GPIO >= 0
+    default 2500
+    range 500 10000
+    help
+        PWM frequency used to drive a passive buzzer.
+
+config WATER_INDICATOR_BUZZER_BEEP_MS
+    int "Buzzer beep duration (ms)"
+    depends on WATER_INDICATOR_BUZZER_GPIO >= 0
+    default 200
+    range 50 2000
+    help
+        Length of each buzzer beep.
+
+config WATER_INDICATOR_BUZZER_REPEAT_S
+    int "Buzzer repeat interval while wet (0 to disable)"
+    depends on WATER_INDICATOR_BUZZER_GPIO >= 0
+    default 0
+    range 0 3600
+    help
+        If greater than 0, beep again at this interval while the sensor stays wet.
+
+endmenu
+
 endmenu

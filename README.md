@@ -12,13 +12,32 @@ Firmware for the [Seeed Studio XIAO ESP32-C6](https://wiki.seeedstudio.com/xiao_
 
 ### Wiring
 
+The Water Detect 3 outputs the comparator signal on mikroBUS **INT** (pin 16, bottom row right). Set the click's **JP1 (VCC SEL)** jumper to **3.3V**.
+
+#### Direct wiring (jumper wires)
+
 | Water Detect 3 (mikroBUS) | XIAO ESP32-C6 |
 |---|---|
 | 3.3V (pin 7) | 3V3 |
 | GND (pin 8 or 9) | GND |
-| INT / AN (pin 2) | D0 (GPIO0) |
+| INT (pin 16) | D0 (GPIO0) |
 
-Power the click at **3.3V**. Attach the remote sensing PCB where you want to detect water.
+#### Conexio Stratus Pro Expansion Dock (no Conexio module)
+
+If you use the expansion dock with only the XIAO ESP32-C6 and Water Detect 3 Click installed:
+
+1. Plug the click into the **mikroBUS socket (P7)**.
+2. Plug the XIAO into the **Seeed XIAO socket**.
+3. Jumper **mikroBUS INT (pin 16)** to **XIAO D0**. Power (3.3V/GND) is usually shared on the dock PCB; if the click does not power up, also jumper 3.3V and GND.
+4. If the click covers the P7 socket, attach the INT jumper to the matching through-hole on the **underside** of the board, or insert the wire into the INT hole before seating the click.
+
+Without the Conexio Stratus module in the center, GPIO signals between mikroBUS and XIAO are not routed on the PCB. The INT-to-D0 jumper replaces the path that Conexio would normally provide (mikroBUS INT → nRF P0.06 → XIAO D0).
+
+Attach the remote sensing PCB where you want to detect water.
+
+#### Optional passive buzzer
+
+The XIAO ESP32-C6 has no built-in speaker or buzzer. To add sound, wire a passive buzzer (+) to a free GPIO such as **D1 (GPIO1)** and (−) to **GND**, then set **Passive buzzer GPIO number** to `1` in `menuconfig` under **Wet Indicator**.
 
 ## Prerequisites
 
@@ -98,6 +117,8 @@ reset
 - Polls the water sensor every **500 ms** (configurable via `menuconfig`)
 - Streams immediately on dry/wet transitions
 - Sends a heartbeat every **60 s** with the current state
+- Turns on the **onboard yellow LED** (GPIO15) while wet
+- Beeps an optional **passive buzzer** when water is first detected (if wired)
 - Stream path: `sensor/water`
 
 Example payload:
@@ -117,6 +138,14 @@ Run `idf.py menuconfig` and open **Water Detector Configuration**:
 | Water sensor GPIO number | 0 | GPIO for INT pin (D0) |
 | Sensor poll interval (ms) | 500 | Poll period |
 | Stream heartbeat interval (s) | 60 | Periodic state report |
+
+Under **Wet Indicator**:
+
+| Option | Default | Description |
+|---|---|---|
+| Enable onboard LED wet indicator | y | Yellow LED on GPIO15 while wet (active low) |
+| Passive buzzer GPIO number | -1 | Set to a GPIO (e.g. 1 for D1) if a buzzer is wired; -1 disables |
+| Buzzer repeat interval while wet (s) | 0 | Optional repeat beep while wet; 0 = beep only on transition |
 
 ## Project layout
 
